@@ -363,6 +363,15 @@ class canvasZoomLTI():
         reqLink +="?startTime=&endTime=2023-09-18&keyWord=&searchType=1&status=&page=1&total=0"
         reqLink += "&lti_scid="+self.scid
         self.reqLink = reqLink
+    def checkTotal(self):
+        result = self.zoomRedirect.json()['result']['list']
+        if self.zoomRedirect.json()['result']['total'] > 12:
+            rounds = int(self.zoomRedirect.json()['result']['total']//12)
+            for round in range(rounds):
+                self.buildEndpoint(round+2)
+                self.zoomRedirect=dep.session.get(self.reqLink, headers=self.zHeader)
+                result += self.zoomRedirect.json()['result']['list']
+        return(result)
     def __init__(self, courseID):
         self.courseID = courseID
         self.launchSessionURL = dep.canvasClient.serverURL + "/api/v1/courses/{0}/external_tools/sessionless_launch?id=23490000000002028".format(courseID)
@@ -376,11 +385,10 @@ class canvasZoomLTI():
             self.parseForms()
         if hasattr(self, "zoomServer") == True:
             self.buildHeader()
-            self.buildEndpoint()
+            self.buildEndpoint(1)
         if hasattr(self, "reqLink") == True:
             self.zoomRedirect=dep.session.get(self.reqLink, headers=self.zHeader)
-            self.zoomSessions = self.zoomRedirect.json()
-            self.zoomSessionsAll = [canvasZoomLTIMeetings(i) for i in self.zoomSessions['result']['list']]
+            self.zoomSessionsAll = self.checkTotal()
 
 class canvasZoomLTIMeetings():
     def __init__(self, jsonString):
