@@ -179,16 +179,31 @@ class coursePage():
         self.body = page["body"]
         if self.body != None:
             self.bodyParsed = coursePageBody(self.body)
+
 class coursePageBody():
+    def correctLink(self, link):
+        link = link[link.index("url=") +4:]
+        link = link.replace("%3A",":")
+        link = link.replace("%3F","?")
+        link = link.replace("%3D","=")
+        link = link.replace("%2F","/")
+        return(link)
     def __init__(self, body):
         self.body = body
         self.bodySoup = BeautifulSoup(self.body, 'html.parser')
         self.embeddedVideos = self.bodySoup.find_all('iframe')
+        if len(self.embeddedVideos) > 0:
+            self.embeddedVideoLinks = [link.get('src') for link in self.embeddedVideos ]
+            self.embeddedVideoLinks = [link for link in self.embeddedVideoLinks if link != None]
+            self.externalVideoLinks = [self.correctLink(link) for link in self.embeddedVideoLinks if "url=" in link]
+            self.internalVideoLinks = [link for link in self.embeddedVideoLinks if "url=" not in link]
         self.embeddedLinks = self.bodySoup.find_all('a')
         if len(self.embeddedLinks) > 0:
-            self.href = [link.get('href') for link in self.embeddedLinks]
+            self.embeddedHyperlinks = [link.get('href') for link in self.embeddedLinks]
+            self.embeddedHyperlinks = [link for link in self.embeddedHyperlinks if link != None]
+            self.externalHyperlinks = [self.correctLink(link) for link in self.embeddedHyperlinks if "url=" in link]
+            self.internalHyperlinks = [link for link in self.embeddedHyperlinks if "url=" not in link]
        
-
 class courseUsers():
     def getUsers(self, role):
         endpoint = self.endpoint+"&enrollment_type[]={0}".format(role)
