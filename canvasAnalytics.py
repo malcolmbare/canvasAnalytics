@@ -20,25 +20,24 @@ class dependencies():
             else:
                 result.update(resp.json())
             return(result)   
-    def canvasGet(self,extension, header):
-        resp = self.session.get(extension, headers = header)
+    def canvasGet(self, extension, header):
+        resp = self.session.get(extension, headers=header)
         if resp.status_code != 200:
             return {"error": "error"}
         else:
             result = resp.json()
-            try:
-                nextLink = resp.links['next']['url']
-                while 'next' in resp.links.keys():
-                    nextLink = resp.links['next']['url']
-                    resp = self.session.get(nextLink, headers = header)
-                    result= self.updateResult(result, resp)
-                if 'last' in resp.links.keys():
-                    lastLink = resp.links['last']['url']
-                    resp = self.session.get(lastLink, headers = header)
-                    result= self.updateResult(result, resp)
-                return(result)
-            except:
-                return(result)         
+            if "next" in resp.links.keys():
+                nextLink = resp.links["next"]["url"]
+                while len(resp.links.keys()) != 2:
+                    if "next" in resp.links.keys():
+                        nextLink = resp.links["next"]["url"]
+                        resp = self.session.get(nextLink, headers=header)
+                        result = self.updateResult(result, resp)
+                    else:
+                        break
+            else:
+                pass
+            return result       
     def __init__(self):
         self.canvasClient = canvas()
         self.session = requests.Session()
